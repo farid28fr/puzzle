@@ -31,6 +31,11 @@ button:active{transform:scale(.96)}
 .prev .tile{cursor:default;transition:none}
 .tile::after{content:"";position:absolute;inset:2px;border-radius:5px;pointer-events:none;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.45),inset 2px 2px 3px rgba(255,255,255,.35),inset -2px -3px 5px rgba(0,0,0,.3)}
 .tile.ghost::after{display:none}
+#pn{font:inherit;padding:8px 12px;border-radius:12px;border:2px solid var(--wood2);background:var(--card);color:var(--tx);width:min(80vw,260px);text-align:center}
+.hbox{background:var(--card);color:var(--tx);border-radius:16px;padding:16px;width:min(92vw,420px);max-height:80vh;overflow:auto}
+.hbox h2{margin:0 0 8px;font-size:1.2rem}.hbox h3{margin:14px 0 4px;font-size:1rem;opacity:.8}
+.hr{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid rgba(128,128,128,.25);font-size:.95rem}
+.hb{display:flex;gap:10px;justify-content:center;margin-top:14px}
 </style>
 </head>
 <body>
@@ -64,11 +69,13 @@ button:active{transform:scale(.96)}
 </g></defs></svg>
 
 <h1>🐬 <span data-t="title">Puzzle Dauphin</span></h1>
+<input id="pn" maxlength="20" data-ph="name" placeholder="Ton nom (facultatif)" autocomplete="off">
 <div class="stats"><div><span data-t="moves">Coups :</span> <span id="mv">0</span></div><div>⏱ <span id="tm">0:00</span></div></div>
 <div class="frame"><div class="board" id="board"></div></div>
 <div id="msg"></div>
-<div class="btns"><button id="shuf" data-t="start">▶ Commencer</button><button class="alt" id="pz" data-t="pause">⏸ Pause</button><button class="alt" id="peek" data-t="peek">Voir l'image</button></div>
+<div class="btns"><button id="shuf" data-t="start">▶ Commencer</button><button class="alt" id="pz" data-t="pause">⏸ Pause</button><button class="alt" id="peek" data-t="peek">Voir l'image</button><button class="alt" id="hist" data-t="hist">🏆 Historique</button></div>
 <button class="alt" id="lng" data-t="lang" style="position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);inset-inline-end:12px;padding:6px 14px;z-index:6">العربية</button>
+<div class="prev" id="hm"><div class="hbox"><h2 data-t="histT">Historique des parties</h2><div id="hl"></div><div class="hb"><button class="alt" id="hclr" data-t="clear">Effacer</button><button id="hx" data-t="close">Fermer</button></div></div></div>
 <div class="prev" id="prev"><div class="frame"><div class="board" id="pb"></div></div></div>
 
 <script>
@@ -105,6 +112,7 @@ function solved(){for(var i=0;i<9;i++)if(pos[i]!=i)return false;return true}
 function check(){
   if(!playing||!solved())return;
   playing=false;clearInterval(timer);
+  var secs=Math.floor((Date.now()-start)/1000);tmEl.textContent=fmt(secs);saveScore(secs);
   tiles[8].classList.add('show');
   msg.textContent=winText();
   fanfare();confetti();setTimeout(confetti,500);
@@ -154,7 +162,7 @@ for(var q=0;q<8;q++){
 var prev=document.getElementById('prev');
 document.getElementById('peek').onclick=function(){prev.classList.add('on');var c=fit(pb);ptiles.forEach(function(t,q){t.style.left=(q%3)*c+'px';t.style.top=Math.floor(q/3)*c+'px'})};
 prev.onclick=function(){prev.classList.remove('on')};
-var I={fr:{title:'Puzzle Dauphin',moves:'Coups :',shuf:'Mélanger',peek:"Voir l'image",lang:'العربية',win:'🎉 Bravo ! {m} coups en {t}',pause:'⏸ Pause',resume:'▶ Reprendre',tap:'Touche pour reprendre',start:'▶ Commencer',restart:'↺ Recommencer',hint:'Déplace les pièces pour mélanger le puzzle, puis touche « Commencer ».',mixfirst:"Mélange d'abord les pièces !"},ar:{title:'لغز الدلفين',moves:'الحركات :',shuf:'اخلط القطع',peek:'عرض الصورة',lang:'Français',win:'🎉 مبروك ! {m} حركة في {t}',pause:'⏸ إيقاف مؤقت',resume:'▶ متابعة',tap:'المس للمتابعة',start:'▶ ابدأ',restart:'↺ إعادة',hint:'حرّك القطع لخلط اللغز، ثم المس «ابدأ».',mixfirst:'اخلط القطع أولاً !'}};
+var I={fr:{title:'Puzzle Dauphin',moves:'Coups :',shuf:'Mélanger',peek:"Voir l'image",lang:'العربية',win:'🎉 Bravo ! {m} coups en {t}',pause:'⏸ Pause',resume:'▶ Reprendre',tap:'Touche pour reprendre',start:'▶ Commencer',restart:'↺ Recommencer',hint:'Déplace les pièces pour mélanger le puzzle, puis touche « Commencer ».',mixfirst:"Mélange d'abord les pièces !",hist:'🏆 Historique',histT:'Historique des parties',best:'Meilleurs temps',recent:'Dernières parties',empty:'Aucune partie pour le moment.',clear:'Effacer',close:'Fermer',sure:'Confirmer ?',anon:'Anonyme',name:'Ton nom (facultatif)',coupsw:'coups'},ar:{title:'لغز الدلفين',moves:'الحركات :',shuf:'اخلط القطع',peek:'عرض الصورة',lang:'Français',win:'🎉 مبروك ! {m} حركة في {t}',pause:'⏸ إيقاف مؤقت',resume:'▶ متابعة',tap:'المس للمتابعة',start:'▶ ابدأ',restart:'↺ إعادة',hint:'حرّك القطع لخلط اللغز، ثم المس «ابدأ».',mixfirst:'اخلط القطع أولاً !',hist:'🏆 السجل',histT:'سجل المباريات',best:'أفضل الأوقات',recent:'آخر المباريات',empty:'لا توجد مباريات بعد.',clear:'مسح',close:'إغلاق',sure:'تأكيد ؟',anon:'مجهول',name:'اسمك (اختياري)',coupsw:'حركة'}};
 var LANG='fr';
 try{LANG=localStorage.getItem('lang')||((navigator.language||'').slice(0,2)=='ar'?'ar':'fr')}catch(e){}
 function T(k){return I[LANG][k]}
@@ -164,6 +172,8 @@ function setLang(l){
   document.documentElement.lang=l;document.documentElement.dir=l=='ar'?'rtl':'ltr';
   document.querySelectorAll('[data-t]').forEach(function(e){e.textContent=T(e.getAttribute('data-t'))});
   document.title=T('title');
+  document.querySelectorAll('[data-ph]').forEach(function(e){e.placeholder=T(e.getAttribute('data-ph'))});
+  var hh=document.getElementById('hm');if(hh&&hh.classList.contains('on'))renderHist();
   if(tiles[8].classList.contains('show'))msg.textContent=winText();else if(!playing)msg.textContent=T('hint');
 }
 document.getElementById('lng').onclick=function(){setLang(LANG=='fr'?'ar':'fr')};
@@ -199,6 +209,37 @@ function startGame(){
 }
 document.getElementById('shuf').onclick=function(){
   if(playing||tiles[8].classList.contains('show'))resetFree();else startGame();
+};
+var HK='dauphin_hist',NK='dauphin_name',pn=document.getElementById('pn'),hm=document.getElementById('hm'),clrArm=false;
+function loadH(){try{return JSON.parse(localStorage.getItem(HK)||'[]')}catch(e){return[]}}
+function saveH(a){try{localStorage.setItem(HK,JSON.stringify(a))}catch(e){}}
+try{pn.value=localStorage.getItem(NK)||''}catch(e){}
+pn.oninput=function(){try{localStorage.setItem(NK,pn.value)}catch(e){}};
+function fmt(s){return Math.floor(s/60)+':'+('0'+s%60).slice(-2)}
+function saveScore(s){var a=loadH();a.push({n:pn.value.trim().slice(0,20),m:moves,t:s,d:Date.now()});saveH(a.slice(-100))}
+function hrow(r,i){
+  var d=document.createElement('div');d.className='hr';
+  var a=document.createElement('span');a.textContent=(i!=null?(i+1)+'. ':'')+(r.n||T('anon'));
+  var b=document.createElement('span');
+  b.textContent=fmt(r.t)+' · '+r.m+' '+T('coupsw')+(i==null?' · '+new Date(r.d).toLocaleDateString(LANG=='ar'?'ar-DZ-u-nu-latn':'fr-FR',{day:'2-digit',month:'2-digit'}):'');
+  d.appendChild(a);d.appendChild(b);return d;
+}
+function renderHist(){
+  var box=document.getElementById('hl');box.textContent='';var a=loadH();
+  if(!a.length){box.textContent=T('empty');return}
+  var h=document.createElement('h3');h.textContent=T('best');box.appendChild(h);
+  a.slice().sort(function(x,y){return x.t-y.t||x.m-y.m}).slice(0,5).forEach(function(r,i){box.appendChild(hrow(r,i))});
+  h=document.createElement('h3');h.textContent=T('recent');box.appendChild(h);
+  a.slice().reverse().slice(0,20).forEach(function(r){box.appendChild(hrow(r,null))});
+}
+function closeH(){hm.classList.remove('on')}
+document.getElementById('hist').onclick=function(){setPause(true);renderHist();hm.classList.add('on')};
+hm.onclick=function(e){if(e.target===hm)closeH()};
+document.getElementById('hx').onclick=closeH;
+document.getElementById('hclr').onclick=function(){
+  var b=this;
+  if(!clrArm){clrArm=true;b.textContent=T('sure');setTimeout(function(){clrArm=false;b.textContent=T('clear')},3000);return}
+  clrArm=false;saveH([]);b.textContent=T('clear');renderHist();
 };
 resetFree();
 </script>
