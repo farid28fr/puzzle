@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Puzzle Dauphin</title>
+<style>
+:root{--bg:#f6efe4;--tx:#3b2a17;--card:#fff;--wood1:#f3e3c7;--wood2:#e2c99f;--slot:#b98f5a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b2a33;--tx:#f1e8d8;--card:#2b3d49;--wood1:#d9c19a;--wood2:#b79a6b;--slot:#8c6a3d}}
+:root[data-theme="dark"]{--bg:#1b2a33;--tx:#f1e8d8;--card:#2b3d49;--wood1:#d9c19a;--wood2:#b79a6b;--slot:#8c6a3d}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+body{min-height:100vh;display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px 14px 24px}
+h1{margin:0;font-size:1.5rem}
+.stats{display:flex;gap:10px}
+.stats div{background:var(--card);border-radius:12px;padding:6px 14px;font-weight:600;min-width:90px;text-align:center}
+.frame{width:min(92vw,440px);aspect-ratio:1;padding:6%;border-radius:14px;background:linear-gradient(135deg,var(--wood1),var(--wood2));box-shadow:0 6px 18px rgba(0,0,0,.3),inset 0 0 0 2px rgba(255,255,255,.35)}
+.board{position:relative;width:100%;height:100%;background:var(--slot);border-radius:6px;box-shadow:inset 0 3px 8px rgba(0,0,0,.4);touch-action:manipulation;user-select:none}
+.tile{position:absolute;width:var(--cell,33.333%);height:var(--cell,33.333%);padding:2px;transition:left .18s ease,top .18s ease,opacity .5s;cursor:pointer}
+.tile svg{width:100%;height:100%;display:block;border-radius:5px;box-shadow:0 2px 4px rgba(0,0,0,.35);pointer-events:none}
+.tile.ghost{opacity:0;pointer-events:none}
+.tile.ghost.show{opacity:1}
+.btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+button{font:inherit;font-weight:600;border:0;border-radius:12px;padding:10px 18px;background:#1e88d6;color:#fff;cursor:pointer}
+button.alt{background:var(--card);color:var(--tx)}
+button:active{transform:scale(.96)}
+#msg{min-height:1.6em;font-weight:700;font-size:1.15rem;text-align:center}
+.prev{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:5}
+.prev.on{display:flex}
+.prev .frame{width:min(88vw,420px)}
+.prev .tile{cursor:default;transition:none}
+.tile::after{content:"";position:absolute;inset:2px;border-radius:5px;pointer-events:none;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.45),inset 2px 2px 3px rgba(255,255,255,.35),inset -2px -3px 5px rgba(0,0,0,.3)}
+.tile.ghost::after{display:none}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2fa8e6"/><stop offset="1" stop-color="#67cdf2"/></linearGradient>
+<g id="scene">
+<rect width="300" height="300" fill="url(#bg)"/>
+<g fill="#fff" opacity=".18"><path d="M40 0L90 0L60 300L0 300Z"/><path d="M180 0L230 0L300 300L240 300Z"/></g>
+<g stroke="#d7f5b8" stroke-width="7" stroke-linecap="round" fill="none" opacity=".85">
+<path d="M90 300C85 250 95 215 110 190M95 255C80 240 70 225 62 205M100 235C115 225 125 215 132 200"/>
+<path d="M170 300C175 255 165 225 185 195M175 255C195 245 205 230 212 215M172 235C158 225 150 215 145 200"/>
+<path d="M240 300C240 270 250 250 262 235M245 275C230 265 222 255 218 245"/></g>
+<g fill="#fff" opacity=".4"><circle cx="205" cy="35" r="11"/><circle cx="250" cy="55" r="8"/><circle cx="25" cy="140" r="9"/><circle cx="262" cy="215" r="10"/><circle cx="35" cy="95" r="6"/><circle cx="270" cy="270" r="7"/></g>
+<g fill="#f6c453" stroke="#f1a63a" stroke-width="2" stroke-linejoin="round">
+<path id="st" d="M0-20L6-7L20-6L9 4L13 18L0 11L-13 18L-9 4L-20-6L-6-7Z" transform="translate(38 45) scale(1.2)"/>
+<use href="#st" transform="translate(70 -2) scale(.8)"/>
+<path d="M0-20L6-7L20-6L9 4L13 18L0 11L-13 18L-9 4L-20-6L-6-7Z" transform="translate(150 22) scale(.7)"/>
+<path d="M0-20L6-7L20-6L9 4L13 18L0 11L-13 18L-9 4L-20-6L-6-7Z" transform="translate(25 165) scale(.85)"/>
+<path d="M0-20L6-7L20-6L9 4L13 18L0 11L-13 18L-9 4L-20-6L-6-7Z" transform="translate(258 175) scale(1)"/></g>
+<g fill="#f59a2f">
+<g id="fi"><ellipse cx="0" cy="0" rx="8" ry="4.5"/><path d="M7 0L14-5L14 5Z"/></g>
+<use href="#fi" x="30" y="18"/><use href="#fi" x="55" y="40"/><use href="#fi" x="225" y="45"/><use href="#fi" x="240" y="100"/><use href="#fi" x="270" y="85"/><use href="#fi" x="20" y="195"/><use href="#fi" x="245" y="150"/><use href="#fi" x="205" y="285"/><use href="#fi" x="278" y="296"/><use href="#fi" x="255" y="190"/></g>
+<path d="M150 92C140 60 120 52 100 58C122 72 128 90 132 108Z" fill="#2a78bf"/>
+<path d="M72 268C60 190 80 120 140 85C190 58 252 70 288 136C272 142 256 140 240 133C215 150 190 165 172 200C152 236 132 256 104 276Z" fill="#2c8fd9" stroke="#1f63a8" stroke-width="3" stroke-linejoin="round"/>
+<path d="M240 133C215 150 190 165 172 200C158 225 148 240 130 258C140 205 170 150 240 133Z" fill="#cfeafb"/>
+<path d="M288 136C272 142 256 140 240 133C262 128 280 128 288 136Z" fill="#cfeafb"/>
+<path d="M100 276C75 262 52 276 38 296C62 286 80 288 92 283C102 292 118 296 136 298C126 288 116 282 100 276Z" fill="#2a78bf" stroke="#1f63a8" stroke-width="3" stroke-linejoin="round"/>
+<path d="M150 150C138 190 160 208 188 188C194 165 176 144 150 150Z" fill="#2a78bf" stroke="#1f63a8" stroke-width="3"/>
+<circle cx="232" cy="100" r="9" fill="#fff"/><circle cx="235" cy="102" r="5.5" fill="#1b1f2a"/>
+<g fill="#fff"><path d="M170 120l3 10 10 3-10 3-3 10-3-10-10-3 10-3z"/><path d="M112 180l2 8 8 2-8 2-2 8-2-8-8-2 8-2z"/><path d="M130 235l2 7 7 2-7 2-2 7-2-7-7-2 7-2z"/></g>
+</g></defs></svg>
+
+<h1>🐬 <span data-t="title">Puzzle Dauphin</span></h1>
+<div class="stats"><div><span data-t="moves">Coups :</span> <span id="mv">0</span></div><div>⏱ <span id="tm">0:00</span></div></div>
+<div class="frame"><div class="board" id="board"></div></div>
+<div id="msg"></div>
+<div class="btns"><button id="shuf" data-t="start">▶ Commencer</button><button class="alt" id="pz" data-t="pause">⏸ Pause</button><button class="alt" id="peek" data-t="peek">Voir l'image</button></div>
+<button class="alt" id="lng" data-t="lang" style="position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);inset-inline-end:12px;padding:6px 14px;z-index:6">العربية</button>
+<div class="prev" id="prev"><div class="frame"><div class="board" id="pb"></div></div></div>
+
+<script>
+var board=document.getElementById('board'),mvEl=document.getElementById('mv'),tmEl=document.getElementById('tm'),msg=document.getElementById('msg');
+var pos=[],tiles=[],moves=0,start=0,timer=null,playing=false;
+// pos[i] = id de la pièce à la case i ; 8 = case vide
+for(var k=0;k<9;k++){
+  var d=document.createElement('div');d.className='tile'+(k==8?' ghost':'');
+  d.innerHTML='<svg viewBox="'+(k%3)*100+' '+Math.floor(k/3)*100+' 100 100"><use href="#scene"/></svg>';
+  d.onclick=(function(id){return function(){tap(id)}})(k);
+  board.appendChild(d);tiles.push(d);
+}
+var CELL=0;
+function fit(b){b.style.width=b.style.height='';var c=Math.floor(b.clientWidth/3);b.style.width=b.style.height=c*3+'px';b.style.margin='0 auto';b.style.setProperty('--cell',c+'px');return c}
+function render(){
+  if(!CELL)CELL=fit(board);
+  for(var i=0;i<9;i++){var t=tiles[pos[i]];t.style.left=(i%3)*CELL+'px';t.style.top=Math.floor(i/3)*CELL+'px';}
+}
+addEventListener('resize',function(){CELL=fit(board);render()});
+function tap(id){
+  if(paused)return;
+  var i=pos.indexOf(id),e=pos.indexOf(8),r=Math.floor(i/3),c=i%3,er=Math.floor(e/3),ec=e%3;
+  if(r!=er&&c!=ec)return;
+  var step=r==er?(ec>c?1:-1):(er>r?3:-3);
+  // décale toute la ligne/colonne vers la case vide
+  var j=e;
+  while(j!=i){pos[j]=pos[j-step];j-=step;}
+  pos[i]=8;
+  if(navigator.vibrate)navigator.vibrate(8);
+  tick();
+  if(playing){moves++;mvEl.textContent=moves;}render();check();
+}
+function solved(){for(var i=0;i<9;i++)if(pos[i]!=i)return false;return true}
+function check(){
+  if(!playing||!solved())return;
+  playing=false;clearInterval(timer);
+  tiles[8].classList.add('show');
+  msg.textContent=winText();
+  fanfare();confetti();setTimeout(confetti,500);
+}
+var AC=null;
+function ac(){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();}catch(e){}return AC}
+function note(f,t,d,type,vol){var a=ac();if(!a)return;var o=a.createOscillator(),g=a.createGain();o.type=type||'triangle';o.frequency.value=f;var s=a.currentTime+t;g.gain.setValueAtTime(0.0001,s);g.gain.exponentialRampToValueAtTime(vol||0.25,s+0.02);g.gain.exponentialRampToValueAtTime(0.0001,s+d);o.connect(g);g.connect(a.destination);o.start(s);o.stop(s+d+0.05)}
+function tick(){note(320,0,0.07,'sine',0.12)}
+function fanfare(){[523,659,784,1047].forEach(function(f,i){note(f,i*0.13,0.35)});[784,1047,1319].forEach(function(f){note(f,0.6,0.9,'triangle',0.18)})}
+function confetti(){
+  var c=document.createElement('canvas');c.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9';
+  var W=c.width=innerWidth,H=c.height=innerHeight;document.body.appendChild(c);var x=c.getContext('2d');
+  var cols=['#f6c453','#2fa8e6','#ff6b6b','#7bd88f','#c792ea','#ffffff'],p=[];
+  for(var i=0;i<160;i++)p.push({x:W/2+(Math.random()-.5)*80,y:H*.45,vx:(Math.random()-.5)*14,vy:-Math.random()*14-4,w:6+Math.random()*6,h:8+Math.random()*8,r:Math.random()*6,vr:(Math.random()-.5)*.4,c:cols[i%cols.length]});
+  var t0=Date.now();
+  (function f(){var el=Date.now()-t0;x.clearRect(0,0,W,H);
+    p.forEach(function(q){q.vy+=.3;q.vx*=.99;q.x+=q.vx;q.y+=q.vy;q.r+=q.vr;x.save();x.translate(q.x,q.y);x.rotate(q.r);x.fillStyle=q.c;x.globalAlpha=Math.max(0,Math.min(1,1-(el-2500)/1500));x.fillRect(-q.w/2,-q.h/2,q.w,q.h);x.restore()});
+    if(el<4000)requestAnimationFrame(f);else c.remove()})();
+}
+function shuffle(){
+  pos=[0,1,2,3,4,5,6,7,8];tiles[8].classList.remove('show');
+  var e=8,last=-1;
+  for(var n=0;n<150;n++){
+    var r=Math.floor(e/3),c=e%3,opts=[];
+    if(r>0)opts.push(e-3);if(r<2)opts.push(e+3);if(c>0)opts.push(e-1);if(c<2)opts.push(e+1);
+    opts=opts.filter(function(o){return o!=last});
+    var o=opts[Math.floor(Math.random()*opts.length)];
+    pos[e]=pos[o];pos[o]=8;last=e;e=o;
+  }
+  if(solved())return shuffle();
+  moves=0;mvEl.textContent=0;msg.textContent='';playing=true;paused=false;pauseUI();
+  clearInterval(timer);start=Date.now();tmEl.textContent='0:00';
+  timer=setInterval(function(){var s=Math.floor((Date.now()-start)/1000);tmEl.textContent=Math.floor(s/60)+':'+('0'+s%60).slice(-2)},500);
+  render();
+}
+// swipe : glisser une pièce vers la case vide
+var sx,sy,sid=null;
+board.addEventListener('touchstart',function(ev){var t=ev.target.closest('.tile');sid=t?tiles.indexOf(t):null;sx=ev.touches[0].clientX;sy=ev.touches[0].clientY},{passive:true});
+document.getElementById('shuf').onclick=shuffle;
+var pb=document.getElementById('pb'),ptiles=[];
+for(var q=0;q<8;q++){
+  var pt=document.createElement('div');pt.className='tile';
+  ptiles.push(pt);
+  pt.innerHTML='<svg viewBox="'+(q%3)*100+' '+Math.floor(q/3)*100+' 100 100"><use href="#scene"/></svg>';
+  pb.appendChild(pt);
+}
+var prev=document.getElementById('prev');
+document.getElementById('peek').onclick=function(){prev.classList.add('on');var c=fit(pb);ptiles.forEach(function(t,q){t.style.left=(q%3)*c+'px';t.style.top=Math.floor(q/3)*c+'px'})};
+prev.onclick=function(){prev.classList.remove('on')};
+var I={fr:{title:'Puzzle Dauphin',moves:'Coups :',shuf:'Mélanger',peek:"Voir l'image",lang:'العربية',win:'🎉 Bravo ! {m} coups en {t}',pause:'⏸ Pause',resume:'▶ Reprendre',tap:'Touche pour reprendre',start:'▶ Commencer',restart:'↺ Recommencer',hint:'Déplace les pièces pour mélanger le puzzle, puis touche « Commencer ».',mixfirst:"Mélange d'abord les pièces !"},ar:{title:'لغز الدلفين',moves:'الحركات :',shuf:'اخلط القطع',peek:'عرض الصورة',lang:'Français',win:'🎉 مبروك ! {m} حركة في {t}',pause:'⏸ إيقاف مؤقت',resume:'▶ متابعة',tap:'المس للمتابعة',start:'▶ ابدأ',restart:'↺ إعادة',hint:'حرّك القطع لخلط اللغز، ثم المس «ابدأ».',mixfirst:'اخلط القطع أولاً !'}};
+var LANG='fr';
+try{LANG=localStorage.getItem('lang')||((navigator.language||'').slice(0,2)=='ar'?'ar':'fr')}catch(e){}
+function T(k){return I[LANG][k]}
+function winText(){return T('win').replace('{m}',moves).replace('{t}',tmEl.textContent)}
+function setLang(l){
+  LANG=l;try{localStorage.setItem('lang',l)}catch(e){}
+  document.documentElement.lang=l;document.documentElement.dir=l=='ar'?'rtl':'ltr';
+  document.querySelectorAll('[data-t]').forEach(function(e){e.textContent=T(e.getAttribute('data-t'))});
+  document.title=T('title');
+  if(tiles[8].classList.contains('show'))msg.textContent=winText();else if(!playing)msg.textContent=T('hint');
+}
+document.getElementById('lng').onclick=function(){setLang(LANG=='fr'?'ar':'fr')};
+setLang(LANG);
+var paused=false,pauseAt=0;
+var pov=document.createElement('div');pov.setAttribute('data-t','tap');pov.textContent=T('tap');
+pov.style.cssText='position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:10px;background:var(--slot);color:#fff;font-weight:700;font-size:1.3rem;z-index:3;cursor:pointer;border-radius:6px';
+board.appendChild(pov);
+function tickTimer(){var s=Math.floor((Date.now()-start)/1000);tmEl.textContent=Math.floor(s/60)+':'+('0'+s%60).slice(-2)}
+function pauseUI(){var b=document.getElementById('pz');b.setAttribute('data-t',paused?'resume':'pause');b.textContent=T(paused?'resume':'pause');pov.style.display=paused?'flex':'none'}
+function setPause(p){
+  if(!playing||p==paused)return;
+  paused=p;
+  if(p){pauseAt=Date.now();clearInterval(timer)}
+  else{start+=Date.now()-pauseAt;tickTimer();timer=setInterval(tickTimer,500)}
+  pauseUI();
+}
+document.getElementById('pz').onclick=function(){setPause(!paused)};
+pov.onclick=function(){setPause(false)};
+document.addEventListener('visibilitychange',function(){if(document.hidden)setPause(true)});
+function shufUI(){var b=document.getElementById('shuf');var k=playing?'restart':'start';b.setAttribute('data-t',k);b.textContent=T(k)}
+function resetFree(){
+  pos=[0,1,2,3,4,5,6,7,8];playing=false;paused=false;clearInterval(timer);
+  moves=0;mvEl.textContent=0;tmEl.textContent='0:00';
+  tiles[8].classList.remove('show');msg.textContent=T('hint');
+  render();pauseUI();shufUI();
+}
+function startGame(){
+  if(solved()){msg.textContent=T('mixfirst');return}
+  playing=true;paused=false;moves=0;mvEl.textContent=0;msg.textContent='';
+  clearInterval(timer);start=Date.now();tmEl.textContent='0:00';timer=setInterval(tickTimer,500);
+  pauseUI();shufUI();
+}
+document.getElementById('shuf').onclick=function(){
+  if(playing||tiles[8].classList.contains('show'))resetFree();else startGame();
+};
+resetFree();
+</script>
+</body>
+</html>
