@@ -36,6 +36,7 @@ button:active{transform:scale(.96)}
 .hbox h2{margin:0 0 8px;font-size:1.2rem}.hbox h3{margin:14px 0 4px;font-size:1rem;opacity:.8}
 .hr{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid rgba(128,128,128,.25);font-size:.95rem}
 .hb{display:flex;gap:10px;justify-content:center;margin-top:14px}
+button:disabled{opacity:.4;cursor:default}
 </style>
 </head>
 <body>
@@ -73,7 +74,8 @@ button:active{transform:scale(.96)}
 <div class="stats"><div><span data-t="moves">Coups :</span> <span id="mv">0</span></div><div>⏱ <span id="tm">0:00</span></div></div>
 <div class="frame"><div class="board" id="board"></div></div>
 <div id="msg"></div>
-<div class="btns"><button id="shuf" data-t="start">▶ Commencer</button><button class="alt" id="pz" data-t="pause">⏸ Pause</button><button class="alt" id="peek" data-t="peek">Voir l'image</button><button class="alt" id="hist" data-t="hist">🏆 Historique</button></div>
+<div id="sc" style="display:none;gap:8px;align-items:center;justify-content:center;direction:ltr"><button class="alt" id="sb">⏪</button><button id="sp">⏸</button><button class="alt" id="sf">⏩</button><span id="sn" style="font-weight:600;min-width:56px;text-align:center">0 / 0</span><button class="alt" id="sx">✕</button></div>
+<div class="btns"><button id="shuf" data-t="start">▶ Commencer</button><button class="alt" id="pz" data-t="pause">⏸ Pause</button><button class="alt" id="sv" data-t="solve">🧠 Résoudre</button><button class="alt" id="peek" data-t="peek">Voir l'image</button><button class="alt" id="hist" data-t="hist">🏆 Historique</button></div>
 <button class="alt" id="lng" data-t="lang" style="position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);inset-inline-end:12px;padding:6px 14px;z-index:6">العربية</button>
 <div class="prev" id="hm"><div class="hbox"><h2 data-t="histT">Historique des parties</h2><div id="hl"></div><div class="hb"><button class="alt" id="hclr" data-t="clear">Effacer</button><button id="hx" data-t="close">Fermer</button></div></div></div>
 <div class="prev" id="prev"><div class="frame"><div class="board" id="pb"></div></div></div>
@@ -95,8 +97,8 @@ function render(){
   for(var i=0;i<9;i++){var t=tiles[pos[i]];t.style.left=(i%3)*CELL+'px';t.style.top=Math.floor(i/3)*CELL+'px';}
 }
 addEventListener('resize',function(){CELL=fit(board);render()});
-function tap(id){
-  if(paused)return;
+function tap(id,force){
+  if(paused||(solving&&!force))return;
   var i=pos.indexOf(id),e=pos.indexOf(8),r=Math.floor(i/3),c=i%3,er=Math.floor(e/3),ec=e%3;
   if(r!=er&&c!=ec)return;
   var step=r==er?(ec>c?1:-1):(er>r?3:-3);
@@ -162,7 +164,7 @@ for(var q=0;q<8;q++){
 var prev=document.getElementById('prev');
 document.getElementById('peek').onclick=function(){prev.classList.add('on');var c=fit(pb);ptiles.forEach(function(t,q){t.style.left=(q%3)*c+'px';t.style.top=Math.floor(q/3)*c+'px'})};
 prev.onclick=function(){prev.classList.remove('on')};
-var I={fr:{title:'Puzzle Dauphin',moves:'Coups :',shuf:'Mélanger',peek:"Voir l'image",lang:'العربية',win:'🎉 Bravo ! {m} coups en {t}',pause:'⏸ Pause',resume:'▶ Reprendre',tap:'Touche pour reprendre',start:'▶ Commencer',restart:'↺ Recommencer',hint:'Déplace les pièces pour mélanger le puzzle, puis touche « Commencer ».',mixfirst:"Mélange d'abord les pièces !",hist:'🏆 Historique',histT:'Historique des parties',best:'Meilleurs temps',recent:'Dernières parties',empty:'Aucune partie pour le moment.',clear:'Effacer',close:'Fermer',sure:'Confirmer ?',anon:'Anonyme',name:'Ton nom (facultatif)',coupsw:'coups'},ar:{title:'لغز الدلفين',moves:'الحركات :',shuf:'اخلط القطع',peek:'عرض الصورة',lang:'Français',win:'🎉 مبروك ! {m} حركة في {t}',pause:'⏸ إيقاف مؤقت',resume:'▶ متابعة',tap:'المس للمتابعة',start:'▶ ابدأ',restart:'↺ إعادة',hint:'حرّك القطع لخلط اللغز، ثم المس «ابدأ».',mixfirst:'اخلط القطع أولاً !',hist:'🏆 السجل',histT:'سجل المباريات',best:'أفضل الأوقات',recent:'آخر المباريات',empty:'لا توجد مباريات بعد.',clear:'مسح',close:'إغلاق',sure:'تأكيد ؟',anon:'مجهول',name:'اسمك (اختياري)',coupsw:'حركة'}};
+var I={fr:{title:'Puzzle Dauphin',moves:'Coups :',shuf:'Mélanger',peek:"Voir l'image",lang:'العربية',win:'🎉 Bravo ! {m} coups en {t}',pause:'⏸ Pause',resume:'▶ Reprendre',tap:'Touche pour reprendre',start:'▶ Commencer',restart:'↺ Recommencer',hint:'Déplace les pièces pour mélanger le puzzle, puis touche « Commencer ».',mixfirst:"Mélange d'abord les pièces !",hist:'🏆 Historique',histT:'Historique des parties',best:'Meilleurs temps',recent:'Dernières parties',empty:'Aucune partie pour le moment.',clear:'Effacer',close:'Fermer',sure:'Confirmer ?',anon:'Anonyme',name:'Ton nom (facultatif)',coupsw:'coups',solve:'🧠 Résoudre',solved:'🤖 Puzzle résolu automatiquement en {n} coups',solving:'Résolution en cours…'},ar:{title:'لغز الدلفين',moves:'الحركات :',shuf:'اخلط القطع',peek:'عرض الصورة',lang:'Français',win:'🎉 مبروك ! {m} حركة في {t}',pause:'⏸ إيقاف مؤقت',resume:'▶ متابعة',tap:'المس للمتابعة',start:'▶ ابدأ',restart:'↺ إعادة',hint:'حرّك القطع لخلط اللغز، ثم المس «ابدأ».',mixfirst:'اخلط القطع أولاً !',hist:'🏆 السجل',histT:'سجل المباريات',best:'أفضل الأوقات',recent:'آخر المباريات',empty:'لا توجد مباريات بعد.',clear:'مسح',close:'إغلاق',sure:'تأكيد ؟',anon:'مجهول',name:'اسمك (اختياري)',coupsw:'حركة',solve:'🧠 حل',solved:'🤖 تم حل اللغز تلقائياً في {n} حركة',solving:'جارٍ الحل…'}};
 var LANG='fr';
 try{LANG=localStorage.getItem('lang')||((navigator.language||'').slice(0,2)=='ar'?'ar':'fr')}catch(e){}
 function T(k){return I[LANG][k]}
@@ -174,7 +176,7 @@ function setLang(l){
   document.title=T('title');
   document.querySelectorAll('[data-ph]').forEach(function(e){e.placeholder=T(e.getAttribute('data-ph'))});
   var hh=document.getElementById('hm');if(hh&&hh.classList.contains('on'))renderHist();
-  if(tiles[8].classList.contains('show'))msg.textContent=winText();else if(!playing)msg.textContent=T('hint');
+  if(tiles[8].classList.contains('show'))msg.textContent=autoSolved?T('solved').replace('{n}',autoN):winText();else if(solving)msg.textContent=T('solving');else if(!playing)msg.textContent=T('hint');
 }
 document.getElementById('lng').onclick=function(){setLang(LANG=='fr'?'ar':'fr')};
 setLang(LANG);
@@ -194,12 +196,12 @@ function setPause(p){
 document.getElementById('pz').onclick=function(){setPause(!paused)};
 pov.onclick=function(){setPause(false)};
 document.addEventListener('visibilitychange',function(){if(document.hidden)setPause(true)});
-function shufUI(){var b=document.getElementById('shuf');var k=playing?'restart':'start';b.setAttribute('data-t',k);b.textContent=T(k)}
+function shufUI(){var b=document.getElementById('shuf');var k=(playing||solving||tiles[8].classList.contains('show'))?'restart':'start';b.setAttribute('data-t',k);b.textContent=T(k)}
 function resetFree(){
-  pos=[0,1,2,3,4,5,6,7,8];playing=false;paused=false;clearInterval(timer);
+  pos=[0,1,2,3,4,5,6,7,8];playing=false;paused=false;clearInterval(timer);solveTok++;solving=false;autoSolved=false;
   moves=0;mvEl.textContent=0;tmEl.textContent='0:00';
   tiles[8].classList.remove('show');msg.textContent=T('hint');
-  render();pauseUI();shufUI();
+  render();pauseUI();shufUI();ctrlUI();
 }
 function startGame(){
   if(solved()){msg.textContent=T('mixfirst');return}
@@ -208,7 +210,7 @@ function startGame(){
   pauseUI();shufUI();
 }
 document.getElementById('shuf').onclick=function(){
-  if(playing||tiles[8].classList.contains('show'))resetFree();else startGame();
+  if(solving||playing||tiles[8].classList.contains('show'))resetFree();else startGame();
 };
 var HK='dauphin_hist',NK='dauphin_name',pn=document.getElementById('pn'),hm=document.getElementById('hm'),clrArm=false;
 function loadH(){try{return JSON.parse(localStorage.getItem(HK)||'[]')}catch(e){return[]}}
@@ -240,6 +242,71 @@ document.getElementById('hclr').onclick=function(){
   var b=this;
   if(!clrArm){clrArm=true;b.textContent=T('sure');setTimeout(function(){clrArm=false;b.textContent=T('clear')},3000);return}
   clrArm=false;saveH([]);b.textContent=T('clear');renderHist();
+};
+var solving=false,autoSolved=false,autoN=0,solveTok=0;
+function solvePath(s){
+  var q=s.slice(),path=[],FOUND=-1;
+  function man(){var h=0;for(var i=0;i<9;i++){var v=q[i];if(v===8)continue;h+=Math.abs((i/3|0)-(v/3|0))+Math.abs(i%3-v%3)}return h}
+  function nb(e){var r=e/3|0,c=e%3,n=[];if(r>0)n.push(e-3);if(r<2)n.push(e+3);if(c>0)n.push(e-1);if(c<2)n.push(e+1);return n}
+  function search(g,bound,e,last){
+    var h=man(),f=g+h;if(f>bound)return f;if(h===0)return FOUND;
+    var min=Infinity,n=nb(e);
+    for(var i=0;i<n.length;i++){
+      var m=n[i];if(m===last)continue;
+      var w=q[e];q[e]=q[m];q[m]=w;path.push(m);
+      var t=search(g+1,bound,m,e);if(t===FOUND)return FOUND;if(t<min)min=t;
+      path.pop();w=q[e];q[e]=q[m];q[m]=w;
+    }
+    return min;
+  }
+  var bound=man(),e0=q.indexOf(8);
+  while(true){var t=search(0,bound,e0,-1);if(t===FOUND)return path.slice();bound=t}
+}
+var SP=[],SK=0,SE=0,SAUTO=false;
+function ctrlUI(){
+  document.getElementById('sc').style.display=solving?'flex':'none';
+  document.getElementById('sb').disabled=SK<=0;
+  document.getElementById('sf').disabled=SK>=SP.length;
+  var p=document.getElementById('sp');p.textContent=SAUTO?'⏸':'▶';p.disabled=SK>=SP.length;
+  document.getElementById('sn').textContent=SK+' / '+SP.length;
+}
+function sFwd(){
+  if(SK>=SP.length)return;
+  tap(pos[SP[SK++]],true);
+  if(SK>=SP.length){SAUTO=false;autoSolved=true;autoN=SP.length;tiles[8].classList.add('show');msg.textContent=T('solved').replace('{n}',autoN)}
+  ctrlUI();
+}
+function sBack(){
+  if(SK<=0)return;
+  var prev=SK>=2?SP[SK-2]:SE;
+  tap(pos[prev],true);SK--;
+  tiles[8].classList.remove('show');autoSolved=false;msg.textContent=T('solving');
+  ctrlUI();
+}
+function sLoop(tok){
+  if(tok!==solveTok||!SAUTO)return;
+  if(SK>=SP.length){SAUTO=false;ctrlUI();return}
+  sFwd();
+  setTimeout(function(){sLoop(tok)},380);
+}
+document.getElementById('sv').onclick=function(){
+  if(solving||solved())return;
+  SP=solvePath(pos);SK=0;SE=pos.indexOf(8);
+  solving=true;autoSolved=false;playing=false;paused=false;clearInterval(timer);pauseUI();
+  msg.textContent=T('solving');shufUI();
+  SAUTO=true;ctrlUI();sLoop(++solveTok);
+};
+document.getElementById('sp').onclick=function(){
+  SAUTO=!SAUTO;var tok=++solveTok;
+  if(SAUTO)sLoop(tok);
+  ctrlUI();
+};
+document.getElementById('sf').onclick=function(){SAUTO=false;solveTok++;sFwd();ctrlUI()};
+document.getElementById('sb').onclick=function(){SAUTO=false;solveTok++;sBack();ctrlUI()};
+document.getElementById('sx').onclick=function(){
+  solveTok++;SAUTO=false;solving=false;
+  if(SK<SP.length)msg.textContent=T('hint');
+  ctrlUI();shufUI();
 };
 resetFree();
 </script>
