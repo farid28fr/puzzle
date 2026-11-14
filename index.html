@@ -37,8 +37,11 @@ button:active{transform:scale(.96)}
 .hr{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid rgba(128,128,128,.25);font-size:.95rem}
 .hb{display:flex;gap:10px;justify-content:center;margin-top:14px}
 button:disabled{opacity:.4;cursor:default}
-.picks{display:flex;gap:10px}
-.pk{width:56px;height:56px;padding:0;border-radius:14px;border:3px solid transparent;overflow:hidden;background:none;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.picks{display:flex;gap:10px;max-width:100%;overflow-x:auto;padding:8px 14px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x}
+.picks::-webkit-scrollbar{display:none}
+.picks>.pk:first-child{margin-inline-start:auto}
+.picks>.pk:last-child{margin-inline-end:auto}
+.pk{flex:0 0 auto;scroll-snap-align:center;width:56px;height:56px;padding:0;border-radius:14px;border:3px solid transparent;overflow:hidden;background:none;box-shadow:0 2px 6px rgba(0,0,0,.3)}
 .pk.on{border-color:#1e88d6}
 .pk svg{width:100%;height:100%;display:block}
 .tile.drag{transition:none;z-index:2;filter:drop-shadow(0 6px 8px rgba(0,0,0,.45))}
@@ -355,6 +358,7 @@ function setImage(n){
   document.getElementById('i4').classList.toggle('on',n==4);
   document.getElementById('hi4').classList.toggle('on',n==4);
   document.getElementById('hero').querySelector('use').setAttribute('href',ref);
+  centerPick('hi'+n);centerPick('i'+n);
 }
 document.getElementById('i0').onclick=function(){setImage(0)};
 document.getElementById('i1').onclick=function(){setImage(1)};
@@ -410,6 +414,12 @@ document.getElementById('info').onclick=openTips;
 document.getElementById('hinfo').onclick=openTips;
 document.getElementById('tx').onclick=closeTips;
 document.getElementById('tipm').onclick=function(e){if(e.target===this)closeTips()};
+function centerPick(id){
+  var b=document.getElementById(id);if(!b)return;
+  var c=b.parentNode;if(!c.clientWidth)return;
+  var d=b.getBoundingClientRect().left-c.getBoundingClientRect().left-(c.clientWidth-b.offsetWidth)/2;
+  try{c.scrollTo({left:c.scrollLeft+d,behavior:'smooth'})}catch(e){c.scrollLeft+=d}
+}
 var home=document.getElementById('home');
 function showHome(){setPause(true);home.classList.remove('off')}
 document.getElementById('play').onclick=function(){ac();note(659,0,.12);note(880,.1,.22);home.classList.add('off')};
