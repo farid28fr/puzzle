@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -183,7 +183,7 @@ document.getElementById('peek').onclick=function(){prev.classList.add('on');var 
 prev.onclick=function(){prev.classList.remove('on')};
 var I={fr:{title:'Puzzle',moves:'Coups :',shuf:'Mélanger',peek:"Voir l'image",lang:'العربية',win:'🎉 Bravo ! {m} coups en {t}',pause:'⏸ Pause',resume:'▶ Reprendre',tap:'Touche pour reprendre',start:'▶ Commencer',restart:'↺ Recommencer',hint:'',mixfirst:"Mélange d'abord les pièces !",hist:'🏆 Historique',histT:'Historique des parties',best:'Meilleurs temps',recent:'Dernières parties',empty:'Aucune partie pour le moment.',clear:'Effacer',close:'Fermer',sure:'Confirmer ?',anon:'Anonyme',name:'Ton nom (facultatif)',coupsw:'coups',solve:'🧠 Résoudre',solved:'🤖 Puzzle résolu automatiquement en {n} coups',solving:'Résolution en cours…',play:'▶ Jouer',mix:'🔀 Mélanger',tagline:'Remets les pièces en ordre !'},ar:{title:'لغز',moves:'الحركات :',shuf:'اخلط القطع',peek:'عرض الصورة',lang:'Français',win:'🎉 مبروك ! {m} حركة في {t}',pause:'⏸ إيقاف مؤقت',resume:'▶ متابعة',tap:'المس للمتابعة',start:'▶ ابدأ',restart:'↺ إعادة',hint:'',mixfirst:'اخلط القطع أولاً !',hist:'🏆 السجل',histT:'سجل المباريات',best:'أفضل الأوقات',recent:'آخر المباريات',empty:'لا توجد مباريات بعد.',clear:'مسح',close:'إغلاق',sure:'تأكيد ؟',anon:'مجهول',name:'اسمك (اختياري)',coupsw:'حركة',solve:'🧠 حل',solved:'🤖 تم حل اللغز تلقائياً في {n} حركة',solving:'جارٍ الحل…',play:'▶ العب',mix:'🔀 اخلط',tagline:'أعد القطع إلى مكانها !'}};
 var LANG='ar';
-try{LANG=localStorage.getItem('puzzle_lang')||'ar'}catch(e){}
+try{LANG='ar'}catch(e){}
 function T(k){return I[LANG][k]}
 function winText(){return T('win').replace('{m}',moves).replace('{t}',tmEl.textContent)}
 function setLang(l){
