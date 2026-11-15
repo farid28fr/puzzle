@@ -58,6 +58,18 @@ button:disabled{opacity:.4;cursor:default}
 #info{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);inset-inline-start:12px;z-index:4}
 #hinfo{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);inset-inline-start:12px}
 #tipm{z-index:30}
+#win{position:fixed;inset:0;z-index:35;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);cursor:pointer}
+#win.on{display:flex}
+.wc{text-align:center;color:#fff;font-weight:700;font-size:1.3rem;padding:20px}
+.wb{position:relative;display:inline-block}
+#wsv{width:min(62vw,260px);display:block;border-radius:22px;border:6px solid #fff;box-shadow:0 12px 36px rgba(0,0,0,.5);transform-origin:50% 100%;animation:wj 1s ease-in-out infinite}
+@keyframes wj{0%,100%{transform:translateY(0) rotate(-4deg) scale(1)}25%{transform:translateY(-34px) rotate(4deg) scale(1.03,.99)}50%{transform:translateY(0) rotate(-4deg) scale(1.06,.94)}75%{transform:translateY(-18px) rotate(3deg)}}
+.hand{position:absolute;right:-20px;top:-26px;font-size:2.6rem;transform-origin:70% 80%;animation:wv .45s ease-in-out infinite alternate}
+@keyframes wv{from{transform:rotate(-18deg)}to{transform:rotate(22deg)}}
+.fl{position:absolute;font-size:1.8rem;animation:fa 1.6s ease-in-out infinite}
+.f1{left:-24px;top:20%}.f2{right:-28px;top:55%;animation-delay:.4s}.f3{left:-10px;bottom:-16px;animation-delay:.8s}
+@keyframes fa{50%{transform:translateY(-14px) scale(1.25)}}
+#wt{margin-top:22px}
 .tip{padding:8px 0;border-bottom:1px solid rgba(128,128,128,.25)}
 .tip b{display:block;margin-bottom:3px}
 .tip span{opacity:.9;font-size:.95rem;line-height:1.55}
@@ -106,6 +118,7 @@ button:disabled{opacity:.4;cursor:default}
 <div id="sc" style="display:none;gap:8px;align-items:center;justify-content:center;direction:ltr"><button class="alt" id="sb">⏪</button><button id="sp">⏸</button><button class="alt" id="sf">⏩</button><span id="sn" style="font-weight:600;min-width:56px;text-align:center">0 / 0</span><button class="alt" id="sx">✕</button></div>
 <div class="btns"><button id="mix" data-t="mix">🔀 Mélanger</button><button id="shuf" data-t="start">▶ Commencer</button><button class="alt" id="pz" data-t="pause">⏸ Pause</button><button class="alt" id="sv" data-t="solve">🧠 Résoudre</button><button class="alt" id="peek" data-t="peek">Voir l'image</button><button class="alt" id="hist" data-t="hist">🏆 Historique</button><button class="alt" id="gohome" aria-label="Accueil">🏠</button></div>
 <button class="alt" id="lng" data-t="lang" style="position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);inset-inline-end:12px;padding:6px 14px;z-index:6">العربية</button>
+<div id="win"><div class="wc"><div class="wb"><svg id="wsv" viewBox="0 0 300 300"><use href="#scene2"/></svg><span class="hand">👋</span><span class="fl f1">⭐</span><span class="fl f2">✨</span><span class="fl f3">⭐</span></div><div id="wt"></div></div></div>
 <div class="prev" id="tipm"><div class="hbox"><h2 data-t="tipsT">Conseils pour résoudre vite</h2><div id="tl"></div><div class="hb"><button id="tx" data-t="close">Fermer</button></div></div></div>
 <div class="prev" id="hm"><div class="hbox"><h2 data-t="histT">Historique des parties</h2><div id="hl"></div><div class="hb"><button class="alt" id="hclr" data-t="clear">Effacer</button><button id="hx" data-t="close">Fermer</button></div></div></div>
 <div class="prev" id="prev"><div class="frame"><div class="board" id="pb"></div></div></div>
@@ -123,7 +136,7 @@ for(var k=0;k<9;k++){
   board.appendChild(d);tiles.push(d);
 }
 var CELL=0;
-function fit(b){b.style.width=b.style.height='';var c=Math.floor(b.clientWidth/3);b.style.width=b.style.height=c*3+'px';b.style.margin='0 auto';b.style.setProperty('--cell',c+'px');return c}
+function fit(b){b.style.width=b.style.height='';var c=Math.floor(b.clientWidth/3);if(!c)return 0;b.style.width=b.style.height=c*3+'px';b.style.margin='0 auto';b.style.setProperty('--cell',c+'px');return c}
 function render(){
   if(!CELL)CELL=fit(board);
   for(var i=0;i<9;i++){var t=tiles[pos[i]];t.style.left=(i%3)*CELL+'px';t.style.top=Math.floor(i/3)*CELL+'px';}
@@ -150,7 +163,7 @@ function check(){
   var secs=Math.floor((Date.now()-start)/1000);tmEl.textContent=fmt(secs);saveScore(secs);
   tiles[8].classList.add('show');
   msg.textContent=winText();
-  fanfare();confetti();setTimeout(confetti,500);
+  fanfare();confetti();setTimeout(confetti,500);showWin();
 }
 var AC=null;
 function ac(){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();}catch(e){}return AC}
@@ -158,7 +171,7 @@ function note(f,t,d,type,vol){var a=ac();if(!a)return;var o=a.createOscillator()
 function tick(){note(320,0,0.07,'sine',0.12)}
 function fanfare(){[523,659,784,1047].forEach(function(f,i){note(f,i*0.13,0.35)});[784,1047,1319].forEach(function(f){note(f,0.6,0.9,'triangle',0.18)})}
 function confetti(){
-  var c=document.createElement('canvas');c.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9';
+  var c=document.createElement('canvas');c.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:40';
   var W=c.width=innerWidth,H=c.height=innerHeight;document.body.appendChild(c);var x=c.getContext('2d');
   var cols=['#f6c453','#2fa8e6','#ff6b6b','#7bd88f','#c792ea','#ffffff'],p=[];
   for(var i=0;i<160;i++)p.push({x:W/2+(Math.random()-.5)*80,y:H*.45,vx:(Math.random()-.5)*14,vy:-Math.random()*14-4,w:6+Math.random()*6,h:8+Math.random()*8,r:Math.random()*6,vr:(Math.random()-.5)*.4,c:cols[i%cols.length]});
@@ -443,6 +456,18 @@ function centerPick(id){
   };
   document.head.appendChild(s);
 })();
+function layoutMain(){if(pos.length<9)return;var c=fit(board);if(!c)return;CELL=c;render()}
+function layoutPrev(){var c=fit(pb);if(!c)return;ptiles.forEach(function(t,q){t.style.left=(q%3)*c+'px';t.style.top=Math.floor(q/3)*c+'px'})}
+if(window.ResizeObserver){new ResizeObserver(layoutMain).observe(board.parentNode);new ResizeObserver(layoutPrev).observe(pb.parentNode)}
+else addEventListener('resize',function(){layoutMain();layoutPrev()});
+var winEl=document.getElementById('win'),winT=0;
+function closeWin(){clearTimeout(winT);winEl.classList.remove('on')}
+function showWin(){
+  document.getElementById('wsv').querySelector('use').setAttribute('href',['#scene','#scene2','#scene3','#scene4','#scene5'][IMG]||'#scene2');
+  document.getElementById('wt').textContent=winText();
+  winEl.classList.add('on');clearTimeout(winT);winT=setTimeout(closeWin,5200);
+}
+winEl.onclick=closeWin;
 var home=document.getElementById('home');
 function showHome(){setPause(true);home.classList.remove('off')}
 document.getElementById('play').onclick=function(){ac();note(659,0,.12);note(880,.1,.22);home.classList.add('off')};
