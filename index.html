@@ -134,7 +134,7 @@ button:disabled{opacity:.4;cursor:default}
 <script>
 var board=document.getElementById('board'),mvEl=document.getElementById('mv'),tmEl=document.getElementById('tm'),msg=document.getElementById('msg');
 // Compteur de joueurs en ligne : colle ici l'URL du projet et la clé "anon public" de Supabase (Settings > API).
-var SB_URL='',SB_KEY='';
+var SB_URL='https://fojasdtymcsbfgssspwv.supabase.co',SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvamFzZHR5bWNzYmZnc3NzcHd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ3MzI2NjAsImV4cCI6MjExMDMwODY2MH0._uegZfagwkzcMWgvpH2IPSltKSTrmUPaYy_Ng6LeMj0';
 var pos=[],tiles=[],moves=0,start=0,timer=null,playing=false;
 // pos[i] = id de la pièce à la case i ; 8 = case vide
 for(var k=0;k<9;k++){
